@@ -1,4 +1,4 @@
-// plugins/react.js — ESM optimizado
+// plugins/react.js — ESM preciso
 import fetch from "node-fetch";
 
 const handler = async (msg, { conn, text, args }) => {
@@ -6,90 +6,84 @@ const handler = async (msg, { conn, text, args }) => {
   const raw = (text || args.join(" ")).trim();
 
   if (!raw) {
-    return conn.sendMessage(
-      chat,
-      {
-        text:
-          "👻 Uso: .react <link_post> <emoji1,emoji2,emoji3,emoji4>\n\n" +
-          "Ejemplo:\n.rc https://whatsapp.com/channel/xxx/123 😨,🤣,👾,😳",
-      },
-      { quoted: msg }
-    );
+    return conn.sendMessage(chat, {
+      text:
+        "👻 Uso: .react <link_post> <emoji1,emoji2>\n\n" +
+        "Ejemplo:\n.rc https://whatsapp.com/channel/xxx/123 😨,🤣",
+    }, { quoted: msg });
   }
 
   await conn.sendMessage(chat, { react: { text: "⏳", key: msg.key } });
 
   try {
     const [postLink, ...rest] = raw.split(" ");
-    const emojiArray = rest.join(" ")
+    const emojis = rest.join(" ")
       .split(/[,，]/)
-      .map((x) => x.trim())
+      .map(e => e.trim())
       .filter(Boolean);
 
-    // Validaciones rápidas
     if (!/whatsapp\.com\/channel\//i.test(postLink))
-      return fail("🚫 Link inválido, debe ser un post de canal.");
+      return fail("🚫 Link inválido.");
 
-    if (!emojiArray.length)
-      return fail("⚠️ Escribe mínimo 1 emoji.");
+    if (!emojis.length)
+      return fail("⚠️ Escribe al menos 1 emoji.");
 
-    if (emojiArray.length > 4)
-      return fail("❗ Máximo 4 emojis permitidos.");
+    if (emojis.length > 4)
+      return fail("❗ Máximo 4 emojis.");
 
-    // 🆕 Generar exactamente 75 reacciones
-    const reacts75 = [];
-    while (reacts75.length < 75) {
-      reacts75.push(...emojiArray);
-    }
-    const finalReacts = reacts75.slice(0, 75).join(",");
+    const apiKey = process.env.REACT_API_KEY || "TU_API_KEY";
 
-    const apiKey =
-      process.env.REACT_API_KEY ||
-      "42699f4385a23f089abfd6948dd6ff366db8aef340eab58f69839b885b8b5e75";
+    const url =
+      "https://foreign-marna-sithaunarathnapromax-9a005c2e.koyeb.app/api/channel/react-to-post";
 
-    const body = {
-      post_link: postLink,
-      reacts: finalReacts, // ← aquí ya van los 75 emojis
-    };
+    // 🔒 LÍMITE EXACTO
+    const MAX_REACTIONS = 75;
 
-    const response = await fetch(
-      "https://foreign-marna-sithaunarathnapromax-9a005c2e.koyeb.app/api/channel/react-to-post",
-      {
+    let sent = 0;
+    let index = 0;
+
+    while (sent < MAX_REACTIONS) {
+      const emoji = emojis[index % emojis.length];
+
+      const res = await fetch(url, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${apiKey}`,
         },
-        body: JSON.stringify(body),
-      }
-    );
+        body: JSON.stringify({
+          post_link: postLink,
+          reacts: emoji, // ⚠️ SOLO 1 EMOJI
+        }),
+      });
 
-    const json = await response.json().catch(() => ({}));
+      if (!res.ok) break;
 
-    if (!response.ok || (!json?.success && !json?.message))
-      return fail("❌ No se pudieron enviar las reacciones.");
+      sent++;
+      index++;
 
-    // OK ✔
+      // ⏱️ pequeño delay para evitar flood interno del API
+      await new Promise(r => setTimeout(r, 120));
+    }
+
     await conn.sendMessage(chat, { react: { text: "✅", key: msg.key } });
     return conn.sendMessage(
       chat,
-      { text: "✅ Se enviaron *75 reacciones* con éxito 👻" },
+      { text: `✅ Se enviaron *${sent} reacciones exactas* 👻` },
       { quoted: msg }
     );
 
-    // Función compacta de error
-    function fail(msgText) {
+    function fail(t) {
       conn.sendMessage(chat, { react: { text: "❌", key: msg.key } });
-      return conn.sendMessage(chat, { text: msgText }, { quoted: msg });
+      return conn.sendMessage(chat, { text: t }, { quoted: msg });
     }
+
   } catch (e) {
-    console.error("[react-opt] Error:", e);
+    console.error("[react-precise]", e);
     conn.sendMessage(chat, { react: { text: "❌", key: msg.key } });
-    return conn.sendMessage(
-      chat,
-      { text: "⚠️ Ocurrió un error inesperado." },
-      { quoted: msg }
-    );
+    return conn.sendMessage(chat, {
+      text: "⚠️ Error inesperado.",
+    }, { quoted: msg });
   }
 };
 
