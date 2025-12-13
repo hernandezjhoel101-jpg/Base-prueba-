@@ -138,5 +138,6 @@ const handler = async (msg, { conn }) => {
   await conn.sendMessage(chatId, { react: { text: "✅", key: msg.key } });
 };
 
+
+handler.command = ['p', 'ping'];
 export default handler;
-export const command = ["p"];
