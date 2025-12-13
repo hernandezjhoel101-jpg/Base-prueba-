@@ -1,31 +1,22 @@
 // plugins/id.js
-const handler = async (m, { conn, args }) => {
+const handler = async (m, { args }) => {
   if (!args[0]) {
     return m.reply('⚠️ Uso: .id <link del canal>')
   }
 
-  try {
-    // ejemplo link:
-    // https://whatsapp.com/channel/0029VaXXXXXXX
-    const match = args[0].match(/channel\/([0-9A-Za-z]+)/i)
-    if (!match) return m.reply('❌ Link de canal inválido')
+  const link = args[0].trim()
 
-    const inviteCode = match[1]
+  // Soporta links de canal nuevos y viejos
+  const match = link.match(/channel\/([0-9]+)/)
 
-    const metadata = await conn.newsletterMetadata('invite', inviteCode)
-
-    // JID real del canal
-    const jid = metadata.id
-
-    await conn.sendMessage(
-      m.chat,
-      { text: jid },
-      { quoted: m }
-    )
-  } catch (e) {
-    console.error(e)
-    m.reply('❌ No pude obtener el ID del canal')
+  if (!match) {
+    return m.reply('❌ Link de canal inválido')
   }
+
+  const newsletterId = match[1]
+  const jid = `${newsletterId}@newsletter`
+
+  await m.reply(jid)
 }
 
 handler.command = ['id']
