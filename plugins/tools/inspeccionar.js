@@ -1,18 +1,32 @@
-import { generateWAMessageFromContent } from '@whiskeysockets/baileys'
+// plugins/id.js
+const handler = async (m, { conn, args }) => {
+  if (!args[0]) {
+    return m.reply('⚠️ Uso: .id <link del canal>')
+  }
 
-let handler = async (m, { text, conn }) => {
-  if (!text) return m.reply('📎 Por favor proporciona el enlace.')
-  if (!text.includes('https://whatsapp.com/channel/')) return m.reply('❗ Enlace no válido.')
+  try {
+    // ejemplo link:
+    // https://whatsapp.com/channel/0029VaXXXXXXX
+    const match = args[0].match(/channel\/([0-9A-Za-z]+)/i)
+    if (!match) return m.reply('❌ Link de canal inválido')
 
-  let result = text.split('https://whatsapp.com/channel/')[1]
-  let res = await conn.newsletterMetadata('invite', result)
+    const inviteCode = match[1]
 
-  let teks = `🆔 *ID:* ${res.id}\n📛 *Nombre:* ${res.name}\n👥 *Suscriptores:* ${res.subscribers}\n📶 *Estado:* ${res.state}\n✅ *Verificado:* ${res.verification === 'VERIFIED' ? 'Sí' : 'No'}`
+    const metadata = await conn.newsletterMetadata('invite', inviteCode)
 
-  await m.reply(teks)
+    // JID real del canal
+    const jid = metadata.id
+
+    await conn.sendMessage(
+      m.chat,
+      { text: jid },
+      { quoted: m }
+    )
+  } catch (e) {
+    console.error(e)
+    m.reply('❌ No pude obtener el ID del canal')
+  }
 }
 
-handler.help = handler.command = ['id']
-handler.tags = ['tools']
-
+handler.command = ['id']
 export default handler
