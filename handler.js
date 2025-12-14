@@ -7,8 +7,6 @@ import chalk from "chalk"
 import fetch from "node-fetch"
 import ws from "ws"
 
-const strRegex = str => str.replace(/[|\\{}()[\]^$+*?.]/g, "\\$&")
-
 const isNumber = x => typeof x === "number" && !isNaN(x)
 const delay = ms => isNumber(ms) && new Promise(resolve => setTimeout(function () {
 clearTimeout(this)
@@ -218,6 +216,7 @@ if (!opts["restrict"])
 if (plugin.tags && plugin.tags.includes("admin")) {
 continue
 }
+const strRegex = (str) => str.replace(/[|\\{}()[\]^$+*?.]/g, "\\$&")
 const pluginPrefix = plugin.customPrefix || conn.prefix || global.prefix
 const match = (pluginPrefix instanceof RegExp ?
 [[pluginPrefix.exec(m.text), pluginPrefix]] :
