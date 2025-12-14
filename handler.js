@@ -156,7 +156,7 @@ await delay(time)
 }
  
 if (m.isBaileys) return
-m.exp += Math.ceil(Math.random() * 10)
+m.exp += m.isCommand ? Math.ceil(Math.random() * 10) : 0
 let usedPrefix
 let groupMetadata = {}
 let participants = []
