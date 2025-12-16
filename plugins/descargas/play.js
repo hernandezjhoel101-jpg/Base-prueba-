@@ -15,7 +15,7 @@ if (!fs.existsSync(TMP_DIR)) fs.mkdirSync(TMP_DIR, { recursive: true })
 const CACHE_FILE = path.join(TMP_DIR, "cache.json")
 
 const API_BASE = (process.env.API_BASE || "https://api-sky.ultraplus.click").replace(/\/+$/, "")
-const API_KEY = process.env.API_KEY || "Russellxz"
+const API_KEY = process.env.API_KEY || "sk_80d69172-f6c4-430d-be35-395b72e7113b"
 
 const MAX_CONCURRENT = 3
 const MAX_MB = 99
