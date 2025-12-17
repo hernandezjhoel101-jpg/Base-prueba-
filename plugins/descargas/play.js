@@ -292,9 +292,20 @@ export default async function handler(msg, { conn, text }) {
 
       const cached = cache[job.videoUrl]?.files?.[type]
       if (cached && fs.existsSync(cached)) {
+        await conn.sendMessage(
+          job.chatId,
+          { text: `⚡ Mandando desde cache: ${type}` },
+          { quoted: job.commandMsg }
+        )
         await sendFile(conn, job, cached, isDoc, type, job.commandMsg)
         continue
       }
+
+      await conn.sendMessage(
+        job.chatId,
+        { text: `⏳ Descargando ${type}...` },
+        { quoted: job.commandMsg }
+      )
 
       let mediaUrl
       try {
@@ -304,10 +315,16 @@ export default async function handler(msg, { conn, text }) {
         continue
       }
 
+      if (!mediaUrl) {
+        await conn.sendMessage(job.chatId, { text: "❌ No se pudo obtener enlace." }, { quoted: job.commandMsg })
+        continue
+      }
+
       try {
         const file = await startDownload(job.videoUrl, type, mediaUrl)
-        cache[job.videoUrl] = cache[job.videoUrl] || { files: {} }
+        cache[job.videoUrl] = cache[job.videoUrl] || { timestamp: Date.now(), files: {} }
         cache[job.videoUrl].files[type] = file
+        saveCache()
         await sendFile(conn, job, file, isDoc, type, job.commandMsg)
       } catch (e) {
         await conn.sendMessage(job.chatId, { text: `❌ Error: ${e}` }, { quoted: job.commandMsg })
