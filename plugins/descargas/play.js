@@ -16,7 +16,7 @@ fs.mkdirSync(TMP_DIR, { recursive: true })
 const API_BASE = (process.env.API_BASE || "https://api-sky.ultraplus.click").replace(/\/+$/, "")
 const API_KEY = process.env.API_KEY || "Angxllll"
 
-const MAX_CONCURRENT = 3
+const MAX_CONCURRENT = 99999999999999
 const MAX_MB = 99
 const DOWNLOAD_TIMEOUT = 60000
 
