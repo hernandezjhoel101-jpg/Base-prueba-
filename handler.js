@@ -155,6 +155,14 @@ export async function handler(chatUpdate) {
 
     if (m.isBaileys) return
 
+    const isCommand = typeof m.text === "string" && m.text.length > 0
+
+    const hasPrefix = global.prefix instanceof RegExp
+      ? global.prefix.test(m.text)
+      : Array.isArray(global.prefix)
+        ? global.prefix.some(p => m.text.startsWith(p))
+        : m.text.startsWith(global.prefix)
+
     let usedPrefix
     let groupMetadata = {}
     let participants = []
@@ -164,7 +172,7 @@ export async function handler(chatUpdate) {
     let isAdmin = false
     let isBotAdmin = false
 
-    if (m.isGroup) {
+    if (m.isGroup && (hasPrefix || m.mentionedJid?.length)) {
       try {
         global.groupCache ||= new Map()
         const cached = global.groupCache.get(m.chat)
@@ -195,14 +203,13 @@ export async function handler(chatUpdate) {
       }
     }
 
-if (m.quoted) {
-  Object.defineProperty(m, '_quoted', {
-    value: smsg(this, m.quoted),
-    enumerable: false,
-    configurable: true
-  })
-}
-    const isCommand = typeof m.text === "string" && m.text.length > 0
+    if (m.quoted) {
+      Object.defineProperty(m, "_quoted", {
+        value: smsg(this, m.quoted),
+        enumerable: false,
+        configurable: true
+      })
+    }
 
     for (const name in global.plugins) {
       const plugin = global.plugins[name]
@@ -212,7 +219,7 @@ if (m.quoted) {
 
       const __filename = join(___dirname, name)
 
-      if (typeof plugin.all === "function") {
+      if (typeof plugin.all === "function" && !isCommand) {
         try {
           await plugin.all.call(this, m, {
             chatUpdate,
@@ -355,6 +362,7 @@ if (m.quoted) {
             chat,
             settings
           })
+          break
         } catch (err) {
           m.error = err
           console.error(err)
