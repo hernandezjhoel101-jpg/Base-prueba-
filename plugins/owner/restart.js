@@ -1,27 +1,25 @@
-import fs from "fs";
-import path from "path";
+const handler = async (m, { conn, isROwner, text }) => {
+    try {
+        const { key } = await conn.sendMessage(m.chat, { text: `🚀🚀` }, { quoted: m })
+        await delay(1000)
+        await conn.sendMessage(m.chat, { text: `🚀🚀🚀🚀`, edit: key })
+        await delay(1000)
+        await conn.sendMessage(m.chat, { text: `🚀🚀🚀🚀🚀🚀`, edit: key })
+        await conn.sendMessage(m.chat, { text: `𝙍𝙚𝙞𝙣𝙞𝙘𝙞𝙖𝙧 | 𝙍𝙚𝙨𝙩𝙖𝙧𝙩`, edit: key })
 
-const handler = async (msg, { conn }) => {
-  const chatId = msg.key.remoteJid;
+        process.exit(0)
 
-  // Reacción 🔄
-  await conn.sendMessage(chatId, {
-    react: { text: "🔄", key: msg.key }
-  });
+    } catch (error) {
+        console.log(error)
+        conn.reply(m.chat, `${error}`, m)
+    }
+}
 
-  // Mensaje de aviso
-  await conn.sendMessage(chatId, {
-    text: "🔄 *𝐑𝐉 𝐁𝐎𝐓 se reiniciará en unos segundos...*"
-  }, { quoted: msg });
-
-  // Guardar chat para notificar luego
-  const restartPath = path.resolve("lastRestarter.json");
-  fs.writeFileSync(restartPath, JSON.stringify({ chatId }, null, 2));
-
-  // Reinicio
-  setTimeout(() => process.exit(1), 3000);
-};
-
-handler.command = ["rest", "restart"];
+handler.help = ['restart']
+handler.tags = ['owner']
+handler.command = ['res', 'reiniciar', 'restart']
 handler.owner = true
-export default handler;
+
+export default handler
+
+const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
