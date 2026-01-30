@@ -2,7 +2,6 @@ let versusData = {} // Guarda el estado por mensaje
 
 const aliasesMX = ['mx', 'méxico', 'mexico', 'méx', 'mex']
 const aliasesCO = ['co', 'colombia', 'col']
-const aliasesEC = ['ec', 'ecuador', 'EC']
 
 let handler = async (m, { conn, args }) => {
   if (args.length === 0) {
